@@ -1,12 +1,19 @@
-// const OktaJwtVerifier = require('@okta/jwt-verifier');
+var config = require("config");
 
-const { ISSUER, CLIENT_ID, CLIENT_SECRET, SCOPE } = process.env;
+const cfenv = require("cfenv");
+const request = require("request-promise");
 
-// validate = async (req, res, next) => {
-//     console.log(`validating...`);
-// };
+//pull cf env
+const appEnv = cfenv.getAppEnv({ vcap: config.get("vcap") });
+const services = appEnv.getService(config.get("sso").instanceName);
 
-buildAuthUrl = () => {
+const { auth_domain, client_id, client_secret } = services.credentials;
+const ISSUER = auth_domain || process.env.ISSUER;
+const CLIENT_ID = client_id || process.env.CLIENT_ID;
+const CLIENT_SECRET = client_secret || process.env.CLIENT_SECRET;
+const SCOPE = config.get("sso").scope || process.env.SCOPE;
+
+const buildAuthUrl = () => {
   //dynamically build implicit flow url
   const url =
     ISSUER +
@@ -14,53 +21,55 @@ buildAuthUrl = () => {
   return url;
 };
 
-verifyAccessToken = token => {
-  //decode JWT and pass claims
-};
-
-secureApi = async (req, res, next) => {
+const getToken = async () => {
+  const uri = buildAuthUrl();
   try {
-    console.log(`validating...`);
-
-    console.log(`req.path => ${req.path}`);
-
-    //todo: verify token
-
-    if (
-      !req.path.startsWith('/api/v1')
-    ) {
-      //   return res.status(200).end();
-      next();
-    }
-
-    // if (req.path !== '/v1/login' || req.path !== '/home') {
-    const { authorization } = req.headers;
-    if (!authorization) {
-      const err = { message: "You must send an Authorization header." };
-      return res.status(403).json(err);
-      //   throw new Error("You must send an Authorization header");
-    }
-
-    const [authType, token] = authorization.trim().split(" ");
-    if (authType !== "Bearer") {
-      const err = { message: "Expected a Bearer token." };
-      return res.status(403).json(err);
-      // throw new Error("Expected a Bearer token");
-    }
-
-    // verify claims...
-    // const {claims} = await verifyAccessToken(token);
-    // if (!claims.scp.includes(process.env.SCOPE)) {
-    //     throw new Error('Could not verify the proper scope');
-    // }
-    // }
-    next();
-  } catch (error) {
-    next(error.message);
+    const res = await request.get(uri, {
+      insecure: true,
+      rejectUnauthorized: false
+    });
+    return res;
+  } catch (e) {
+    console.log(`ex: ${e}`);
+    throw e;
   }
 };
 
+const verifyAccessToken = token => {
+  //decode JWT and pass claims
+};
+
+const authMiddleware = async (req, res, next) => {
+  console.log("intercept.");
+  console.log(`req.path: ${req.path}`);
+  if (!req.path.startsWith("/api/v1")) {
+    return next();
+  }
+
+  const { authorization } = req.headers;
+  if (!authorization) {
+    const err = { message: "You must send an Authorization header." };
+    return res.status(403).json(err);
+  }
+
+  const [authType, token] = authorization.trim().split(" ");
+  if (authType !== "Bearer") {
+    const err = { message: "Expected a Bearer token." };
+    return res.status(403).json(err);
+  }
+
+  // verify claims...
+  // const {claims} = await verifyAccessToken(token);
+  // if (!claims.scp.includes(process.env.SCOPE)) {
+  //     throw new Error('Could not verify the proper scope');
+  // }
+  // }
+
+  next();
+};
+
 module.exports = {
-  secureApi,
-  buildAuthUrl
+  buildAuthUrl,
+  authMiddleware,
+  getToken
 };

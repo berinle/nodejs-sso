@@ -1,0 +1,6 @@
+{
+  "sso": {
+    "instanceName": "spa-sso",
+    "scope": "openid"
+  }
+}

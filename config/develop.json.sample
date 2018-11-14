@@ -1,0 +1,24 @@
+{
+  "vcap": {
+    "services": {
+      "catalogue": [
+        {
+          "name": "spa-sso",
+          "instance_name": "spa-sso",
+          "binding_name": null,
+          "credentials": {
+            "auth_domain": "<your auth domain>",
+            "client_id": "<your client id>",
+            "client_secret": "<your client secret>"
+          },
+          "syslog_drain_url": null,
+          "volume_mounts": [],
+          "label": "p-identity",
+          "provider": null,
+          "plan": "gcp-sso",
+          "tags": []
+        }
+      ]
+    }
+  }
+}
