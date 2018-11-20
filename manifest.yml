@@ -5,5 +5,5 @@ applications:
   memory: 128m
   services:
   - spa-sso
-  env:
-    GRANT_TYPE: 'implicit'
+#   env:
+#     GRANT_TYPE: 'implicit'

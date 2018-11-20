@@ -17,7 +17,7 @@ const buildAuthUrl = () => {
   //dynamically build implicit flow url
   const url =
     ISSUER +
-    `/oauth/authorize?client_id=${CLIENT_ID}&response_type=token&scope=${SCOPE}`;
+    `/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&scope=${SCOPE}`;
   return url;
 };
 
