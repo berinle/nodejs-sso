@@ -1,5 +1,7 @@
 var config = require("config");
+const url = require("url");
 var path = __dirname + "/views/";
+var rp = require("request-promise");
 
 const { buildAuthUrl, authMiddleware, getToken } = require("./auth");
 
@@ -21,6 +23,25 @@ app.get("/", async (req, res) => {
   const result = await getToken();
   return res.send(`<a href="${buildAuthUrl()}">View Profile</a>`);
   // res.sendFile(path + "index.html");
+});
+
+app.get("/adhoc", async (req, res) => {
+  const result = await getToken();
+  res.send("adhoc");
+});
+
+app.get("/oauth/callback", async (req, res) => {
+  try {
+    console.log("** in callback **");
+    const urlPaths = url.parse(req.url, true);
+    // const query = urlPaths.query;
+    console.log(`urlPaths: ${urlPaths}`);
+    // console.log(`query: ${query}`);
+    console.log(`access_token: ${req.query.access_token}`);
+    res.send("in callback");
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 app.get("/protected", (req, res) => res.send("**** PROTECTED ****"));

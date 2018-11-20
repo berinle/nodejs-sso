@@ -6,4 +6,4 @@ applications:
   services:
   - spa-sso
   env:
-    GRANT_TYPE: 'implicit'
+    GRANT_TYPE: implicit
